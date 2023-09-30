@@ -8,17 +8,21 @@ def is_latin(c : chr) -> bool:
 	return is_lower(c) or is_upper(c)
 
 # adds two lower case latin characters
-def add_char(a : chr, b : chr) -> bool:
-	a_num = ord(a)-ord('a')
-	b_num = ord(b)-ord('a')
-	a_num = (a_num + b_num) % 26
-	return chr(a_num + ord('a'))
+def add_char(a : chr, b : chr) -> chr:
+    if not is_latin(a) or not is_latin(b):
+        return a
+    a_num = ord(a)-ord('a')
+    b_num = ord(b)-ord('a')
+    a_num = (a_num + b_num) % 26
+    return chr(a_num + ord('a'))
 
-def sub_char(a : chr, b : chr) -> bool:
-	a_num = ord(a)-ord('a')
-	b_num = ord(b)-ord('a')
-	a_num = (a_num - b_num) % 26
-	return chr(a_num + ord('a'))
+def sub_char(a : chr, b : chr) -> chr:
+    if (not is_latin(a)) or (not is_latin(b)):
+        return a
+    a_num = ord(a)-ord('a')
+    b_num = ord(b)-ord('a')
+    a_num = (a_num - b_num) % 26
+    return chr(a_num + ord('a'))
 
 def encrypt(text : str, key : str) -> str:
 	lower_text = text.lower()
