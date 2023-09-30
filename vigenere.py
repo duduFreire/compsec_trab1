@@ -51,3 +51,5 @@ def decrypt(text : str, key : str) -> str:
 			cipher += new_c
 	
 	return cipher
+
+
