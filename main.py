@@ -11,7 +11,7 @@ def usage() -> None:
     print("commands:")
     print("     encrypt <password>")
     print("     decrypt <password>")
-    print("     break <input>")
+    print("     break")
 
 def next_arg(args: list[str]) -> str:
     if len(args) == 0:
@@ -32,14 +32,14 @@ def main() -> None:
     args = sys.argv
     program = next_arg(args)
     command = next_arg(args)
-    text = remove_accents(read_from_stdin())
+    text = remove_accents(read_from_stdin()).lower()
     if command == "encrypt":
-        password = next_arg(args)
+        password = next_arg(args).lower()
         result = vigenere.encrypt(text, password)
         print_to_stdout(result)
 
     elif command == "decrypt":
-        password = next_arg(args)
+        password = next_arg(args).lower()
         result = vigenere.decrypt(text, password)
         print_to_stdout(result)
 
