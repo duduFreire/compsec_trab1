@@ -46,16 +46,17 @@ def main() -> None:
     args = sys.argv
     program = next_arg(args)
     command = next_arg(args)
-    text = remove_accents(read_from_stdin()).lower()
+    text_normal_case = remove_accents(read_from_stdin())
+    text = text_normal_case.lower()
 
     if command == "encrypt":
         password = next_arg(args).lower()
-        result = vigenere.encrypt(text, password)
+        result = vigenere.encrypt(text_normal_case, password)
         print_to_stdout(result)
 
     elif command == "decrypt":
         password = next_arg(args).lower()
-        result = vigenere.decrypt(text, password)
+        result = vigenere.decrypt(text_normal_case, password)
         print_to_stdout(result)
 
     elif command == "break":
@@ -73,7 +74,7 @@ def main() -> None:
             key = codebreaker.break_cipher_in_all_languages(text)
 
         print_to_stdout(f"KEY: {key}\n")
-        print_to_stdout(vigenere.decrypt(text, key))
+        print_to_stdout(vigenere.decrypt(text_normal_case, key))
 
     else:
         usage()
