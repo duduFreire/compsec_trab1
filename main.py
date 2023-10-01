@@ -1,10 +1,7 @@
-import sys, unicodedata
+import sys
 import vigenere
 import codebreaker
-
-def remove_accents(s: str) -> str:
-   return ''.join(c for c in unicodedata.normalize('NFD', s)
-                  if unicodedata.category(c) != 'Mn')
+from string_processing import remove_accents
 
 def usage() -> None:
     print("python3 program.py <command>")
@@ -50,6 +47,7 @@ def main() -> None:
     program = next_arg(args)
     command = next_arg(args)
     text = remove_accents(read_from_stdin()).lower()
+
     if command == "encrypt":
         password = next_arg(args).lower()
         result = vigenere.encrypt(text, password)
@@ -65,9 +63,9 @@ def main() -> None:
         if (len(args) > 0):
             language = next_arg(args)
             if language == "pt":
-                key = break_cipher_in_pt(text)
+                key = codebreaker.break_cipher_in_pt(text)
             elif language == "en":
-                key = break_cipher_in_en(text)
+                key = codebreaker.break_cipher_in_en(text)
             else:
                 usage()
                 exit(1)
