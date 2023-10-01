@@ -13,7 +13,7 @@ ENGLISH_WORDS_PATH = DATA_PATH + "english_words.txt"
 def remove_non_latin(word: str) -> str:
     return "".join(c for c in word if vigenere.is_latin(c))
 
-def cipher_words(cipher: str) -> list[str]:
+def get_cipher_words(cipher: str) -> list[str]:
     clean_words = [remove_non_latin(word.strip()) for word in cipher.split()]
     return [word for word in clean_words if len(word) > 0]
 
@@ -31,15 +31,14 @@ def frequency_table_error(
         language_table.keys(), 0
     )
 
-def load_words(words_path: str) -> set[str]:
+def load_words(words_path: str) -> list[str]:
     with open(words_path, "r") as f:
         words = set(f.read().split())
 
-    return words
+    return list(words)
 
-def likelihood_of_valid_text(text: str, language_words_path: str) -> float:
-    language_words = load_words(language_words_path)
-    text_words = cipher_words(text)
+def likelihood_of_valid_text(text: str, language_words: list[str]) -> float:
+    text_words = get_cipher_words(text)
     number_of_valid_words = reduce(
         lambda v, word: v + (
             1 
@@ -80,8 +79,10 @@ def trigram_periods(tri : str, text : str) -> dict[int, int]:
     
     return periods
 
-def add_dict(dict1 : dict[int, int], dict2 : dict [int,int]) -> \
-    dict[int,int]:
+def add_dict(
+        dict1 : dict[int, int], 
+        dict2 : dict [int,int]
+    ) -> dict[int,int]:
     for key in dict2:
         if key in dict1:
             dict1[key] += dict2[key]
@@ -91,10 +92,12 @@ def add_dict(dict1 : dict[int, int], dict2 : dict [int,int]) -> \
 # Returns a dictionary D such that D[k] represents how many
 # times the period key appeared as a possible candidate for the
 # key size.
-def trigram_period_table(text : str) -> dict[int, int]:
+def trigram_period_table(
+        words: list[str], text : str, 
+    ) -> dict[int, int]:
     result = dict()
     text = text.lower()
-    for word in text.split():
+    for word in words:
         for i in range(len(word)-2):
             periods = trigram_periods(word[i:i+3], text)    
             add_dict(result, periods)   
@@ -103,7 +106,10 @@ def trigram_period_table(text : str) -> dict[int, int]:
 
 ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 
-def find_key(cipher: str, key_size: int) -> str:
+def find_key(
+        cipher: str, key_size: int, 
+        language_letter_frequency: dict[str, float]
+    ) -> str:
     key = ""
     for i in range(key_size):
         best_shift = "a"
@@ -120,7 +126,7 @@ def find_key(cipher: str, key_size: int) -> str:
             for k in freq.keys():
                 freq[k] *= 100/total
 
-            error = frequency_table_error(freq, ENGLISH_LETTER_FREQUENCY)
+            error = frequency_table_error(freq, language_letter_frequency)
             if (error < best_error):
                 best_error = error
                 best_shift = shift
@@ -131,22 +137,102 @@ def find_key(cipher: str, key_size: int) -> str:
 
     return key
 
+def break_language(
+        language_valid_words: list[str], 
+        language_letter_frequency: str,
+        cipher_text: str,
+        cipher_words: list[str],
+        trigrams: list[int],
+    ) -> tuple[str, float]:
 
-def break_cipher(cipher: str) -> str:
-     #cipher = clear_cipher(cipher)
-    trigrams = trigram_period_table(cipher)
-    print(trigrams)
+    possible_keys = [
+            find_key(cipher_text, trigram, language_letter_frequency) 
+            for trigram in trigrams
+    ]
+    cipher = " ".join(cipher_words)
+    best_keys = list(sorted(
+            possible_keys,
+            key=lambda k: likelihood_of_valid_text(
+                vigenere.decrypt(cipher, k), language_valid_words
+            ),
+            reverse=True
+    ))
+    best_key = best_keys[0]
+    return best_key, likelihood_of_valid_text(
+            vigenere.decrypt(cipher, best_key), language_valid_words
+            )
+
+def break_cipher_in_en(cipher: str) -> str:
+    only_letter_text = remove_non_latin(cipher)
+    cipher_words = get_cipher_words(cipher)
+
+    trigrams = trigram_period_table(cipher_words, only_letter_text)
     best_trigrams = sorted(
             trigrams.keys(),
             key=lambda k: trigrams[k], 
             reverse=True
     )[:min(len(trigrams), 5)]
 
-    possible_keys = [find_key(cipher, trigram) for trigram in best_trigrams]
-    best_keys = list(sorted(
-            possible_keys,
-            key=lambda k: likelihood_of_valid_text(vigenere.decrypt(cipher, k), ENGLISH_WORDS_PATH),
+    en_words = load_words(ENGLISH_WORDS_PATH)
+    en_key, en_value = break_language(
+            en_words, 
+            ENGLISH_LETTER_FREQUENCY,
+            only_letter_text,
+            cipher_words,
+            best_trigrams,
+    )
+    return en_key
+
+def break_cipher_in_pt(cipher: str) -> str:
+    only_letter_text = remove_non_latin(cipher)
+    cipher_words = get_cipher_words(cipher)
+
+    trigrams = trigram_period_table(cipher_words, only_letter_text)
+    best_trigrams = sorted(
+            trigrams.keys(),
+            key=lambda k: trigrams[k], 
             reverse=True
-    ))
-    print(best_keys)
-    return best_keys[0]
+    )[:min(len(trigrams), 5)]
+
+    pt_words = load_words(PORTUGUESE_WORDS_PATH)
+    pt_key, pt_value = break_language(
+            pt_words, 
+            PORTUGUESE_LETTER_FREQUENCY,
+            only_letter_text,
+            cipher_words,
+            best_trigrams,
+    )
+    return pt_key
+
+
+def break_cipher_in_all_languages(cipher: str) -> str:
+    only_letter_text = remove_non_latin(cipher)
+    cipher_words = get_cipher_words(cipher)
+
+    trigrams = trigram_period_table(cipher_words, only_letter_text)
+    best_trigrams = sorted(
+            trigrams.keys(),
+            key=lambda k: trigrams[k], 
+            reverse=True
+    )[:min(len(trigrams), 5)]
+
+    pt_words = load_words(PORTUGUESE_WORDS_PATH)
+    en_words = load_words(ENGLISH_WORDS_PATH)
+    pt_key, pt_value = break_language(
+            pt_words, 
+            PORTUGUESE_LETTER_FREQUENCY,
+            only_letter_text,
+            cipher_words,
+            best_trigrams,
+    )
+    en_key, en_value = break_language(
+            en_words, 
+            ENGLISH_LETTER_FREQUENCY,
+            only_letter_text,
+            cipher_words,
+            best_trigrams,
+    )
+    if (en_value > pt_value):
+        return en_key
+
+    return pt_key
