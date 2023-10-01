@@ -6,7 +6,7 @@ from string_processing import remove_accents
 def usage() -> None:
     print("python3 program.py <command>")
     print()
-    print("commands:")
+    print("command:")
     print("     encrypt <password>")
     print("     decrypt <password>")
     print("     break <language>")
@@ -16,16 +16,16 @@ def usage() -> None:
     print("     pt")
     print()
     print("Examples:")
-    print("cat text.txt | python3 main.py encrypt arara")
+    print("cat exemplo_en.txt | python3 main.py encrypt arara")
     print()
-    print("""cat text.txt | python3 main.py encrypt arara \\
+    print("""cat exemplo_en.txt | python3 main.py encrypt arara \\
              | python3 main.py decrypt arara""")
     print()
-    print("""cat text.txt | python3 main.py encrypt arara \\
+    print("""cat exemplo_en.txt | python3 main.py encrypt arara \\
              | python3 main.py break""")
     print()
-    print("""cat text.txt | python3 main.py encrypt arara \\
-             | python3 main.py break pt""")
+    print("""cat exemplo_en.txt | python3 main.py encrypt arara \\
+             | python3 main.py break en""")
 
 def next_arg(args: list[str]) -> str:
     if len(args) == 0:

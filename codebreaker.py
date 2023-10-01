@@ -28,13 +28,13 @@ def frequency_table_error(
         language_table.keys(), 0.0
     )
 
-def load_words(words_path: str) -> list[str]:
+def load_words(words_path: str) -> set[str]:
     with open(words_path, "r") as f:
         words = set(f.read().split())
 
-    return list(words)
+    return words
 
-def likelihood_of_valid_text(text: str, language_words: list[str]) -> float:
+def likelihood_of_valid_text(text: str, language_words: set[str]) -> float:
     text_words = get_latin_words(text)
     number_of_valid_words = reduce(
         lambda v, word: v + (
@@ -125,7 +125,7 @@ def find_key(
     return key
 
 def break_language(
-        language_valid_words: list[str], 
+        language_valid_words: set[str], 
         language_letter_frequency: dict[str, float],
         cipher_text: str,
         cipher_words: list[str],
